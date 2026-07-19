@@ -307,8 +307,8 @@
     </div>
 
     <div id="bar">
-      <button class="chipbtn active" id="btnOverview">Vista general</button>
-      <button class="chipbtn" id="btnPlan">Plano cenital</button>
+      <button class="chipbtn" id="btnOverview">Vista general</button>
+      <button class="chipbtn active" id="btnPlan">Plano cenital</button>
       <button class="chipbtn" id="btnStage">Desde el escenario</button>
       <button class="chipbtn" id="btnExit" style="display: none">← Salir de la butaca</button>
     </div>
@@ -399,6 +399,7 @@
         bocaTop: 11.5,      // alto libre aprox. de la boca sobre el piso escénico
         stageFloor: 1.15,   // piso del escenario sobre nivel platea
         stageRake: 0.03,    // pendiente: 3 cm por metro
+        stageBackZ: -26.5,  // fondo de la superficie escénica modelada
         discR: 20.3 / 2,    // disco giratorio: 20,30 m de diámetro
         height: 28,         // altura total de la sala
       };
@@ -759,7 +760,7 @@
 
       // Escenario: piso con pendiente, disco giratorio, escenografía simple
       (function stage() {
-        const zFront = H.bocaZ + 0.4, zBack = -26.5;
+        const zFront = H.bocaZ + 0.4, zBack = H.stageBackZ;
         const depth = zFront - zBack;
         const yBack = H.stageFloor + H.stageRake * depth;
         const g = new THREE.BufferGeometry();
@@ -816,7 +817,12 @@
          ================================================================ */
       const PALCO_DEPTH_AISLE = PALCO_DEPTH + 1.45; // borde de platea: palcos + pasillo perimetral
       const seats = []; // { pos, rotY, secId, nivel, fila, num, eyeH, standing }
-      const FOCUS = new THREE.Vector3(0, H.stageFloor + 1.6, H.bocaZ); // referencia de mirada
+      const stageCenterZ = ((H.bocaZ + 0.4) + H.stageBackZ) / 2;
+      const FOCUS = new THREE.Vector3(
+        0,
+        H.stageFloor + H.stageRake * ((H.bocaZ + 0.4) - stageCenterZ) + 1.6,
+        stageCenterZ
+      ); // centro del escenario: referencia inicial de mirada desde cada butaca
 
       function faceStage(p) {
         return Math.atan2(-(FOCUS.x - p.x), -(FOCUS.z - p.z));
@@ -1123,6 +1129,22 @@
         const halfH = halfV * Math.max(camera.aspect, 0.4);
         return (r * 1.06) / Math.min(halfV, halfH);
       }
+
+      function planViewGoal() {
+        const bounds = new THREE.Box3().setFromObject(scene);
+        const size = bounds.getSize(new THREE.Vector3());
+        const center = bounds.getCenter(new THREE.Vector3());
+        const halfV = Math.tan(((camera.fov / 2) * Math.PI) / 180);
+        const halfH = halfV * Math.max(camera.aspect, 0.4);
+        const footprintDistance = Math.max(size.z / (2 * halfV), size.x / (2 * halfH));
+
+        return {
+          theta: 0,
+          phi: 0.01,
+          radius: size.y / 2 + footprintDistance * 1.08,
+          target: center,
+        };
+      }
       const orbit = { theta: 0, phi: 1.02, radius: 46, target: new THREE.Vector3(0, 5.5, -4) };
       const orbitGoal = { theta: 0, phi: 1.02, radius: 46, target: orbit.target.clone() };
       let mode = "orbit"; // orbit | seat
@@ -1177,9 +1199,7 @@
       function goPlan() {
         exitSeat(true);
         setBarActive("btnPlan");
-        // encuadra sala + escenario completos desde arriba; el radio suma la altura
-        // de los muros (21 m) porque su borde superior se proyecta más afuera que el piso
-        flyOrbit({ theta: 0, phi: 0.05, radius: 23 + fitRadius(18.5), target: new THREE.Vector3(0, 0, -6) });
+        flyOrbit(planViewGoal());
       }
       function goStage() {
         exitSeat(true);
@@ -1538,8 +1558,12 @@
       }
       window.addEventListener("resize", resize);
       resize();
-      // vista inicial ajustada al tamaño real de la ventana
-      orbit.radius = orbitGoal.radius = Math.max(40, fitRadius(23));
+      // La experiencia abre con el teatro completo, centrado y visto desde arriba.
+      const initialView = planViewGoal();
+      Object.assign(orbit, { theta: initialView.theta, phi: initialView.phi, radius: initialView.radius });
+      orbit.target.copy(initialView.target);
+      Object.assign(orbitGoal, { theta: initialView.theta, phi: initialView.phi, radius: initialView.radius });
+      orbitGoal.target.copy(initialView.target);
 
       const lookDir = new THREE.Vector3();
       function frame(now) {
