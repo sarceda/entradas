@@ -1,9 +1,8 @@
 {
-  "name": "3d-football-stadium",
-  "version": "0.0.0",
+  "name": "entradas-teatro-colon",
+  "version": "0.1.0",
   "private": true,
-  "description": "A procedural 3D football stadium seat preview experience.",
-  "author": "thebuggeddev <thebuggeddev@gmail.com> (https://x.com/thebuggeddev)",
+  "description": "Plano de sala 3D del Teatro Colón: recorré los 7 niveles y previsualizá la vista al escenario desde cada butaca.",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "scripts": {

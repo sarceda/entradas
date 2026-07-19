@@ -1,69 +1,69 @@
-# StadiView
+# Entradas · Teatro Colón — Plano de Sala 3D
 
-**Experience every seat before match day.**
+**Conocé tu ubicación antes de comprar la entrada.**
 
-> [!TIP]
-> **Teatro Colón — Plano de Sala 3D**: this repo also includes [`teatro-colon.html`](teatro-colon.html),
-> a procedural 3D visualization of the main hall of the Teatro Colón (Buenos Aires) built on the same
-> seat-preview idea. It models the horseshoe hall at real scale (29.25 m × 32.65 m × 28 m, 7 levels),
-> maps every section from the official seating plan (Platea, Palcos, Cazuela, Tertulia, Galería,
-> Paraíso and standing room), and lets you click any seat to preview its actual view of the stage —
-> including a geometric "% of stage visible" computed by raycasting against parapets, overhangs and
-> the proscenium. Run `npm run dev` and open `/teatro-colon.html`.
-
-StadiView is an interactive, procedural 3D football stadium concept. Explore the stadium, select from thousands of generated seats, and fly into a first person preview of the view from each one.
+Visualización 3D interactiva de la sala principal del Teatro Colón (Buenos Aires): recorré la
+herradura completa con sus 7 niveles, hacé clic en cualquier butaca y mirá el escenario en primera
+persona desde esa ubicación exacta.
 
 > [!NOTE]
-> StadiView is a concept demo. The fixture, prices, seat availability, checkout, and other ticketing data are simulated; no real tickets are sold through this project.
+> Proyecto educativo y sin fines comerciales. No es un sitio oficial del Teatro Colón ni vende
+> entradas; el modelo es una aproximación procedural, no un plano técnico.
 
-## Highlights
+## Qué incluye
 
-- A fully procedural stadium with no imported 3D models
-- Thousands of individually selectable seats rendered efficiently with instancing
-- Animated camera flights and first person seat views
-- Generated seat previews, pricing, availability, tiers, blocks, and benefits
-- Animated players, ball, crowd, lighting, scoreboards, and pitch side displays
-- Stadium overview, mini map, orbit controls, keyboard support, and reduced motion handling
-- A self contained experience in `index.html`, powered by Three.js and GSAP
+- **La sala a escala real**, construida desde las dimensiones publicadas: herradura de
+  29,25 m × 32,65 m, 28 m de altura, boca de escenario de ~16,30 m, escenario de 35,25 × 34,50 m
+  con pendiente de 3 cm/m y disco giratorio de 20,30 m, foso de orquesta, cúpula de Soldi y araña central.
+- **Todas las secciones del plano de sala oficial**, nivel por nivel: Platea (filas 1–14 y 15–22),
+  palcos bajos/balcón/altos (centro, central y laterales), Platea Balcón, Palco Cazuela, Cazuela,
+  Tertulia, Galería, Paraíso y las ubicaciones de pie, con sus rangos oficiales de butacas
+  impares/pares.
+- **~2.150 butacas seleccionables** (renderizadas con instancing) con numeración impar/par.
+- **Vista en primera persona desde cada butaca**, con distancia al escenario, altura, ángulo lateral
+  y un **porcentaje de escenario visible** calculado geométricamente: se lanzan rayos desde el ojo
+  del espectador contra parapetos, voladizos, muros del proscenio y telones del modelo.
+- **Modos de cámara**: vista general orbitable, plano cenital (misma orientación que el PDF oficial),
+  vista desde el escenario y corte por nivel.
 
-## Try it locally
+## Cómo correrlo
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the local address shown by Vite.
+Después abrí la dirección local que muestra Vite.
 
-## Controls
+## Controles
 
-| Action                     | Control                                       |
-| -------------------------- | --------------------------------------------- |
-| Rotate around the stadium  | Click or touch and drag                       |
-| Zoom                       | Mouse wheel or on screen controls              |
-| Preview a seat             | Click a seat                                  |
-| Look around from a seat    | Drag while in seat view                       |
-| Leave seat view            | Press <kbd>Esc</kbd> or use “Back to stadium” |
-| Confirm the demo selection | Press <kbd>Enter</kbd> or use “Grab seat”     |
+| Acción                          | Control                                        |
+| ------------------------------- | ---------------------------------------------- |
+| Rotar alrededor de la sala      | Clic (o tacto) y arrastrar                     |
+| Zoom                            | Rueda del mouse                                |
+| Ver ficha de una butaca         | Clic en la butaca                              |
+| Entrar a la vista de la butaca  | «Ver desde esta butaca» o el botón «Vista»     |
+| Mirar alrededor desde la butaca | Arrastrar en la vista de butaca                |
+| Salir de la butaca              | <kbd>Esc</kbd> o «← Salir de la butaca»        |
+| Corte por nivel                 | Botones «Hasta nivel N» (arriba a la derecha)  |
 
-## Support the project
+## Fuentes
 
-If StadiView sparked an idea or you would like to support more experimental, vibe coded projects like this, you can [buy me a coffee through PayPal](https://paypal.me/gunalesujata). No pressure. The best support is enjoying the project and sharing it with someone who might like it. ☕
+- [Plano de sala oficial del Teatro Colón (PDF)](https://teatrocolon.org.ar/files/colon/plano-sala-principal.pdf)
+- [El Teatro — teatrocolon.org.ar](https://teatrocolon.org.ar/el-teatro/)
+- [Teatro Colón en WikiArquitectura](https://es.wikiarquitectura.com/edificio/teatro-colon/)
 
-## Licensing
+Las proporciones generales, alturas y la distribución de secciones respetan esas fuentes; la
+posición individual de cada butaca y la ornamentación son generadas proceduralmente.
 
-StadiView is available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). You may study, share, and adapt it for permitted noncommercial purposes while keeping the required copyright and license notices.
+## Créditos y licencia
 
-Commercial use requires a separate commercial license. This includes use in a paid product, client project, ticketing platform, stadium or club experience, or other business activity. See [Commercial licensing](COMMERCIAL-LICENSE.md) for the next step.
+Este proyecto está construido sobre la base y el concepto de vista-por-butaca de
+**StadiView**, creado por **thebuggeddev** — copyright © 2026 thebuggeddev
+([GitHub](https://github.com/thebuggeddev) · [X](https://x.com/thebuggeddev) ·
+[thebuggeddev@gmail.com](mailto:thebuggeddev@gmail.com)).
 
-This project is source available. It is not an OSI approved open source project. Third party libraries remain covered by their own licenses. See [Third party notices](THIRD_PARTY_NOTICES.md).
-
-## Creator and contact
-
-Created by **thebuggeddev**.
-
-Find [@thebuggeddev on GitHub](https://github.com/thebuggeddev) and [@thebuggeddev on X](https://x.com/thebuggeddev).
-
-Send email to [thebuggeddev@gmail.com](mailto:thebuggeddev@gmail.com).
-
-Copyright © 2026 thebuggeddev.
+Disponible bajo la [licencia PolyForm Noncommercial 1.0.0](LICENSE.md): podés estudiarlo,
+compartirlo y adaptarlo para usos no comerciales conservando los avisos de copyright y licencia.
+El uso comercial requiere una [licencia comercial aparte](COMMERCIAL-LICENSE.md). Las bibliotecas
+de terceros mantienen sus propias licencias: ver [avisos de terceros](THIRD_PARTY_NOTICES.md).
