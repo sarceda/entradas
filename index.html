@@ -52,7 +52,10 @@
         font-family: var(--sans);
         -webkit-font-smoothing: antialiased;
       }
-      #c { position: fixed; inset: 0; display: block; cursor: grab; }
+      #c {
+        position: fixed; inset: 0; width: 100%; height: 100%;
+        display: block; cursor: grab;
+      }
       #c.dragging { cursor: grabbing; }
       #c.seatmode { cursor: move; }
 
