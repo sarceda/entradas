@@ -1,22 +1,18 @@
-# Third party notices
+# Avisos de terceros
 
-StadiView copyright © 2026 thebuggeddev. Send email to [thebuggeddev@gmail.com](mailto:thebuggeddev@gmail.com).
+Este proyecto está basado en **StadiView**, copyright © 2026 thebuggeddev
+([thebuggeddev@gmail.com](mailto:thebuggeddev@gmail.com)), bajo licencia
+PolyForm Noncommercial 1.0.0 (ver [LICENSE.md](LICENSE.md)).
 
-StadiView loads the following libraries from cdnjs. They are not relicensed under the StadiView project license and remain subject to their own terms.
+La página carga la siguiente biblioteca desde cdnjs. No se relicencia bajo la licencia de este
+proyecto y permanece sujeta a sus propios términos.
 
 ## Three.js r128
 
-Copyright © 2010 to 2021 three.js authors
+Copyright © 2010 a 2021, autores de three.js
 
-Read the [Three.js MIT License](https://github.com/mrdoob/three.js/blob/r128/LICENSE).
+Ver la [licencia MIT de Three.js](https://github.com/mrdoob/three.js/blob/r128/LICENSE).
 
-## GSAP 3.12.5
+La biblioteca se obtiene en tiempo de ejecución desde cdnjs:
 
-Copyright © 2008 to 2026 GreenSock
-
-Read the [GreenSock standard no charge license](https://gsap.com/standard-license/).
-
-The libraries are fetched at runtime from cdnjs.
-
-- [Three.js r128 on cdnjs](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)
-- [GSAP 3.12.5 on cdnjs](https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js)
+- [Three.js r128 en cdnjs](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)
