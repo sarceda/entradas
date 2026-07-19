@@ -1116,8 +1116,15 @@
       /* ================================================================
          8. CÁMARA, MODOS Y ENTRADA
          ================================================================ */
-      const orbit = { theta: 0, phi: 1.02, radius: 44, target: new THREE.Vector3(0, 5.5, -4) };
-      const orbitGoal = { theta: 0, phi: 1.02, radius: 44, target: orbit.target.clone() };
+      // radio de órbita para que una esfera de radio r entre completa en pantalla,
+      // cualquiera sea la relación de aspecto de la ventana
+      function fitRadius(r) {
+        const halfV = Math.tan(((camera.fov / 2) * Math.PI) / 180);
+        const halfH = halfV * Math.max(camera.aspect, 0.4);
+        return (r * 1.06) / Math.min(halfV, halfH);
+      }
+      const orbit = { theta: 0, phi: 1.02, radius: 46, target: new THREE.Vector3(0, 5.5, -4) };
+      const orbitGoal = { theta: 0, phi: 1.02, radius: 46, target: orbit.target.clone() };
       let mode = "orbit"; // orbit | seat
       let seatLook = { yaw: 0, pitch: 0, fov: 55 };
       let currentSeat = -1;
@@ -1165,12 +1172,14 @@
       function goOverview() {
         exitSeat(true);
         setBarActive("btnOverview");
-        flyOrbit({ theta: 0, phi: 1.02, radius: 44, target: new THREE.Vector3(0, 5.5, -4) });
+        flyOrbit({ theta: 0, phi: 1.02, radius: Math.max(40, fitRadius(23)), target: new THREE.Vector3(0, 5.5, -4) });
       }
       function goPlan() {
         exitSeat(true);
         setBarActive("btnPlan");
-        flyOrbit({ theta: 0, phi: 0.06, radius: 46, target: new THREE.Vector3(0, 0, -2) });
+        // encuadra sala + escenario completos desde arriba; el radio suma la altura
+        // de los muros (21 m) porque su borde superior se proyecta más afuera que el piso
+        flyOrbit({ theta: 0, phi: 0.05, radius: 23 + fitRadius(18.5), target: new THREE.Vector3(0, 0, -6) });
       }
       function goStage() {
         exitSeat(true);
@@ -1271,7 +1280,7 @@
       canvas.addEventListener("wheel", (e) => {
         e.preventDefault();
         if (mode === "orbit") {
-          orbitGoal.radius = Math.max(5, Math.min(55, orbitGoal.radius + e.deltaY * 0.03));
+          orbitGoal.radius = Math.max(5, Math.min(95, orbitGoal.radius + e.deltaY * 0.03));
         } else {
           seatLook.fov = Math.max(28, Math.min(80, seatLook.fov + e.deltaY * 0.04));
         }
@@ -1499,10 +1508,9 @@
       document.getElementById("btnPlan").addEventListener("click", goPlan);
       document.getElementById("btnStage").addEventListener("click", goStage);
       document.getElementById("btnExit").addEventListener("click", () => exitSeat());
-      document.getElementById("btnPanel").addEventListener("click", () => {
-        document.getElementById("panel").classList.toggle("hidden");
-        updateViewOffset();
-      });
+      document.getElementById("btnPanel").addEventListener("click", () =>
+        document.getElementById("panel").classList.toggle("hidden")
+      );
       document.getElementById("btnCardClose").addEventListener("click", () => {
         card.classList.remove("show");
         setActiveSectionUI(null);
@@ -1523,27 +1531,15 @@
       /* ================================================================
          10. LOOP
          ================================================================ */
-      // El panel de secciones tapa el lado izquierdo del canvas: desplazamos el
-      // punto de fuga para que la sala quede centrada en el área libre.
-      function updateViewOffset() {
-        const panel = document.getElementById("panel");
-        const w = innerWidth, h = innerHeight;
-        const panelVisible = !panel.classList.contains("hidden") && w > 640;
-        if (panelVisible) {
-          const pw = panel.getBoundingClientRect().right;
-          camera.setViewOffset(w, h, -pw / 2, 0, w, h);
-        } else {
-          camera.clearViewOffset();
-        }
-        camera.updateProjectionMatrix();
-      }
       function resize() {
         renderer.setSize(innerWidth, innerHeight, false);
         camera.aspect = innerWidth / innerHeight;
-        updateViewOffset();
+        camera.updateProjectionMatrix();
       }
       window.addEventListener("resize", resize);
       resize();
+      // vista inicial ajustada al tamaño real de la ventana
+      orbit.radius = orbitGoal.radius = Math.max(40, fitRadius(23));
 
       const lookDir = new THREE.Vector3();
       function frame(now) {
@@ -1579,7 +1575,7 @@
       console.log("[Teatro Colón] butacas generadas:", seatSeated.length, "· de pie:", seatStand.length, resumen);
       window.__colon = {
         seats, selectSeat, enterSeat, exitSeat, goOverview, goPlan, focusSection, setCut,
-        visibilityFrom, seatEye, occluders, camera, updateViewOffset,
+        visibilityFrom, seatEye, occluders, camera,
         counts: { sentadas: seatSeated.length, dePie: seatStand.length, porSeccion: resumen },
       };
     </script>
