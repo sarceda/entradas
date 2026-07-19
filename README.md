@@ -2,6 +2,15 @@
 
 **Experience every seat before match day.**
 
+> [!TIP]
+> **Teatro Colón — Plano de Sala 3D**: this repo also includes [`teatro-colon.html`](teatro-colon.html),
+> a procedural 3D visualization of the main hall of the Teatro Colón (Buenos Aires) built on the same
+> seat-preview idea. It models the horseshoe hall at real scale (29.25 m × 32.65 m × 28 m, 7 levels),
+> maps every section from the official seating plan (Platea, Palcos, Cazuela, Tertulia, Galería,
+> Paraíso and standing room), and lets you click any seat to preview its actual view of the stage —
+> including a geometric "% of stage visible" computed by raycasting against parapets, overhangs and
+> the proscenium. Run `npm run dev` and open `/teatro-colon.html`.
+
 StadiView is an interactive, procedural 3D football stadium concept. Explore the stadium, select from thousands of generated seats, and fly into a first person preview of the view from each one.
 
 > [!NOTE]
