@@ -97,6 +97,33 @@
       #panel .phead h2 { font-family: var(--serif); font-size: 15px; font-weight: 400; color: var(--gold); }
       #panel .phead span { font-size: 10px; color: var(--dim); letter-spacing: 0.1em; }
       #plist { overflow-y: auto; padding: 6px 8px 12px; scrollbar-width: thin; }
+
+      /* selector zona / fila / asiento */
+      #picker {
+        padding: 10px 14px 12px; border-bottom: 1px solid var(--line);
+        display: flex; flex-direction: column; gap: 6px; flex: none;
+        background: rgba(38, 27, 22, 0.55);
+      }
+      #picker .ptit {
+        font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold);
+        margin-bottom: 2px;
+      }
+      #picker label {
+        font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim);
+      }
+      #picker select {
+        width: 100%; padding: 7px 8px; border-radius: 8px; font-size: 12.5px;
+        background: var(--panel-2); color: var(--ink); border: 1px solid var(--line);
+        font-family: var(--sans);
+      }
+      #picker select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+      #picker .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #picker .cols > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+      #btnGo {
+        margin-top: 4px; padding: 9px 12px; border-radius: 9px; font-size: 13px; font-weight: 600;
+        background: var(--gold); color: #201409; text-align: center;
+      }
+      #btnGo:hover { background: #e5c078; }
       .lvl { margin-top: 8px; }
       .lvl > .lname {
         display: flex; align-items: center; gap: 8px;
@@ -255,6 +282,22 @@
       <div class="phead">
         <h2>Plano de sala</h2>
         <span id="ptotal"></span>
+      </div>
+      <div id="picker">
+        <div class="ptit">Elegí tu ubicación</div>
+        <label for="selZona">Zona</label>
+        <select id="selZona"></select>
+        <div class="cols">
+          <div>
+            <label for="selFila" id="labFila">Fila</label>
+            <select id="selFila"></select>
+          </div>
+          <div>
+            <label for="selButaca" id="labButaca">Butaca</label>
+            <select id="selButaca"></select>
+          </div>
+        </div>
+        <button id="btnGo">Ver desde este asiento →</button>
       </div>
       <div id="plist"></div>
     </aside>
@@ -781,8 +824,9 @@
       function pushSeat(pos, secId, fila, opts = {}) {
         seats.push({
           pos, rotY: faceStage(pos), secId, nivel: SECTIONS[secId].nivel,
-          fila, num: 0, side: pos.x < 0 ? "impar" : "par",
+          fila, num: 0, side: opts.side || (pos.x < 0 ? "impar" : "par"),
           eyeH: opts.standing ? 1.58 : 1.16, standing: !!opts.standing,
+          palco: !!opts.palco, boxId: opts.boxId, boxOrd: opts.boxOrd,
         });
       }
 
@@ -840,13 +884,18 @@
             { inset: PALCO_DEPTH - 0.8, dy: 0 },
             { inset: PALCO_DEPTH - 1.7, dy: 0.32 },
           ];
+          const side = uc < 0.5 ? "par" : "impar";
           rows.forEach((row, ri) => {
             const c = buildCurve(row.inset, 300);
             const { p, tan } = curveAt(c, uc);
             [-1, 1].forEach((s) => {
               const q = p.clone().addScaledVector(tan, s * 0.31);
               q.y = floorY + row.dy;
-              pushSeat(q, zone.sec, "Palco", { palco: true });
+              pushSeat(q, zone.sec, "Palco", {
+                palco: true, side,
+                boxId: nivel + "|" + side + "|" + j,
+                boxOrd: Math.min(uc, 1 - uc),
+              });
             });
           });
           // divisores entre palcos
@@ -913,7 +962,26 @@
       ringRowMirrored("paraisoPie", "De pie 1", 1.05, LEVEL_Y[7] + 0.72, 0.1, 0.5, 0.95, { standing: true });
       ringRowMirrored("paraisoPie", "De pie 2", 0.2, LEVEL_Y[7] + 1.17, 0.1, 0.5, 0.95, { standing: true });
 
-      // --- numeración: impares (−x) / pares (+x), desde el proscenio o desde el centro ---
+      // --- numeración de palcos: por nivel y lado, Palco 1 = el más cercano al proscenio ---
+      (function numberPalcos() {
+        const rings = {};
+        seats.forEach((s) => {
+          if (!s.palco) return;
+          const key = s.nivel + "|" + s.side;
+          (rings[key] = rings[key] || {})[s.boxId] = s.boxOrd;
+        });
+        Object.keys(rings).forEach((key) => {
+          const orden = Object.entries(rings[key]).sort((a, b) => a[1] - b[1]);
+          const numOf = {};
+          orden.forEach(([id], k) => { numOf[id] = k + 1; });
+          seats.forEach((s) => {
+            if (s.palco && s.nivel + "|" + s.side === key) s.fila = "Palco " + numOf[s.boxId];
+          });
+        });
+      })();
+
+      // --- numeración: impares (−x) / pares (+x), desde el proscenio o desde el centro;
+      //     dentro de cada palco, asientos 1-4 (adelante primero) ---
       (function numberSeats() {
         const groups = {};
         seats.forEach((s, i) => {
@@ -923,6 +991,11 @@
         Object.keys(groups).forEach((key) => {
           const [secId, , side] = key.split("|");
           const idxs = groups[key];
+          if (seats[idxs[0]].palco) {
+            idxs.sort((a, b) => seats[a].pos.y - seats[b].pos.y || seats[a].pos.x - seats[b].pos.x);
+            idxs.forEach((si, k) => { seats[si].num = k + 1; });
+            return;
+          }
           const fromCenter = secId.startsWith("platea");
           idxs.sort((a, b) => {
             const pa = seats[a].pos, pb = seats[b].pos;
@@ -1121,8 +1194,10 @@
         document.getElementById("cardLvl").textContent = LEVEL_NAMES[s.nivel];
         document.getElementById("cardSec").innerHTML = "<em>" + sec.name + "</em>";
         document.getElementById("cardSeat").textContent = s.standing
-          ? "Ubicación de pie · lado " + s.side
-          : (typeof s.fila === "number" ? "Fila " + s.fila : s.fila) + " · butaca " + s.num + " (" + s.side + ")";
+          ? "De pie · lugar " + s.num + " (lado " + s.side + ")"
+          : s.palco
+            ? s.fila + " (" + s.side + ") · asiento " + s.num
+            : "Fila " + s.fila + " · butaca " + s.num + " (" + s.side + ")";
         document.getElementById("cDist").textContent = dist.toFixed(1) + " m";
         document.getElementById("cAlt").textContent = eye.y.toFixed(1) + " m";
         document.getElementById("cAng").textContent = ang.toFixed(0) + "°";
@@ -1134,6 +1209,7 @@
 
         setActiveSectionUI(s.secId);
         paintSeats(s.secId);
+        syncPickerTo(i);
         if (alsoView) enterSeat(i);
       }
 
@@ -1227,7 +1303,11 @@
         if (i >= 0) {
           const s = seats[i];
           tip.innerHTML = SECTIONS[s.secId].name +
-            " <small>· " + (s.standing ? "de pie" : (typeof s.fila === "number" ? "fila " + s.fila : s.fila) + " · nº " + s.num) + "</small>";
+            " <small>· " + (s.standing
+              ? "de pie · lugar " + s.num
+              : s.palco
+                ? s.fila.toLowerCase() + " " + s.side + " · asiento " + s.num
+                : "fila " + s.fila + " · nº " + s.num) + "</small>";
           tip.style.left = cx + 14 + "px";
           tip.style.top = cy + 6 + "px";
           tip.style.opacity = 1;
@@ -1280,16 +1360,9 @@
       function sectionSeats(id) {
         return seats.map((s, i) => ({ s, i })).filter((o) => o.s.secId === id);
       }
-      function focusSection(id, alsoView) {
+      function flyToSection(id) {
         const list = sectionSeats(id);
         if (!list.length) return;
-        setActiveSectionUI(id);
-        paintSeats(id);
-        // butaca representativa: mediana por posición
-        const mid = list[Math.floor(list.length / 2)];
-        if (alsoView) { selectSeat(mid.i, true); return; }
-        selectSeat(mid.i, false);
-        // volar la órbita hacia la sección
         const cen = new THREE.Vector3();
         list.forEach((o) => cen.add(o.s.pos));
         cen.divideScalar(list.length);
@@ -1301,6 +1374,105 @@
           radius: 26, target: new THREE.Vector3(cen.x * 0.35, Math.max(3, cen.y * 0.7), cen.z * 0.3),
         });
       }
+      function focusSection(id, alsoView) {
+        const list = sectionSeats(id);
+        if (!list.length) return;
+        setActiveSectionUI(id);
+        paintSeats(id);
+        // butaca representativa: mediana por posición
+        const mid = list[Math.floor(list.length / 2)];
+        if (alsoView) { selectSeat(mid.i, true); return; }
+        selectSeat(mid.i, false);
+        flyToSection(id);
+      }
+
+      /* ---- selector de ubicación: zona → fila → asiento ---- */
+      const selZona = document.getElementById("selZona");
+      const selFila = document.getElementById("selFila");
+      const selButaca = document.getElementById("selButaca");
+      const labFila = document.getElementById("labFila");
+      const labButaca = document.getElementById("labButaca");
+      let syncingPicker = false;
+
+      // clave de fila: los palcos se distinguen además por lado (Palco 3 · impar)
+      function filaKey(s) { return s.palco ? s.fila + "|" + s.side : String(s.fila); }
+      function filaNum(k) { const m = String(k).match(/\d+/); return m ? +m[0] : 0; }
+
+      (function buildZonas() {
+        let og = null, lastLvl = 0;
+        Object.keys(SECTIONS).forEach((id) => {
+          const sec = SECTIONS[id];
+          if (sec.nivel !== lastLvl) {
+            lastLvl = sec.nivel;
+            og = document.createElement("optgroup");
+            og.label = LEVEL_NAMES[sec.nivel];
+            selZona.appendChild(og);
+          }
+          const o = document.createElement("option");
+          o.value = id;
+          o.textContent = sec.name;
+          og.appendChild(o);
+        });
+      })();
+
+      function refreshFilas(keepKey) {
+        const secId = selZona.value;
+        const sec = SECTIONS[secId];
+        const first = seats.find((s) => s.secId === secId);
+        const esPalco = !!(first && first.palco);
+        const keys = [...new Set(seats.filter((s) => s.secId === secId).map(filaKey))]
+          .sort((a, b) => filaNum(a) - filaNum(b) || (a < b ? -1 : 1));
+        selFila.innerHTML = "";
+        keys.forEach((k) => {
+          const o = document.createElement("option");
+          o.value = k;
+          o.textContent = esPalco ? k.replace("|", " · ") : isNaN(+k) ? k : "Fila " + k;
+          selFila.appendChild(o);
+        });
+        labFila.textContent = esPalco ? "Palco" : "Fila";
+        labButaca.textContent = esPalco ? "Asiento" : sec.pie ? "Lugar" : "Butaca";
+        if (keepKey !== undefined && keys.includes(keepKey)) selFila.value = keepKey;
+        refreshButacas();
+      }
+      function refreshButacas(keepIdx) {
+        const secId = selZona.value, key = selFila.value;
+        const list = seats
+          .map((s, i) => ({ s, i }))
+          .filter((o) => o.s.secId === secId && filaKey(o.s) === key)
+          .sort((a, b) => a.s.num - b.s.num);
+        selButaca.innerHTML = "";
+        list.forEach(({ s, i }) => {
+          const o = document.createElement("option");
+          o.value = String(i);
+          o.textContent = s.palco ? "Asiento " + s.num
+            : s.standing ? "Lugar " + s.num + " · " + s.side
+            : "Nº " + s.num + " · " + s.side;
+          selButaca.appendChild(o);
+        });
+        if (keepIdx !== undefined && list.some((o) => o.i === keepIdx)) selButaca.value = String(keepIdx);
+      }
+      function syncPickerTo(i) {
+        const s = seats[i];
+        syncingPicker = true;
+        selZona.value = s.secId;
+        refreshFilas(filaKey(s));
+        refreshButacas(i);
+        syncingPicker = false;
+      }
+
+      selZona.addEventListener("change", () => {
+        refreshFilas();
+        if (syncingPicker) return;
+        setActiveSectionUI(selZona.value);
+        paintSeats(selZona.value);
+        flyToSection(selZona.value);
+      });
+      selFila.addEventListener("change", () => refreshButacas());
+      document.getElementById("btnGo").addEventListener("click", () => {
+        const i = parseInt(selButaca.value, 10);
+        if (!isNaN(i)) selectSeat(i, true); // directo a la vista, mirando al centro del escenario
+      });
+      refreshFilas();
 
       // corte por nivel
       const cutBox = document.getElementById("cut");
